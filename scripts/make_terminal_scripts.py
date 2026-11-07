@@ -15,14 +15,14 @@ Write-Host "`n> git status --short; git log -3 --oneline" -ForegroundColor Yello
 git status --short; git log -3 --oneline
 Write-Host "`n> dvc push --all-commits" -ForegroundColor Yellow
 & ..\\.venv\\Scripts\\dvc.exe push --all-commits
-$before=(Get-FileHash -LiteralPath samples.csv -Algorithm SHA256).Hash
+$before=(& ..\\.venv\\Scripts\\python.exe -c "import hashlib;print(hashlib.sha256(open('samples.csv','rb').read()).hexdigest())")
 Write-Host "`n> Remove-Item -LiteralPath samples.csv; Test-Path samples.csv" -ForegroundColor Yellow
 Remove-Item -LiteralPath (Join-Path (Get-Location) 'samples.csv')
 Test-Path -LiteralPath samples.csv
-Write-Host "`n> dvc config --local cache.dir .dvc/cache/screenshot-proof; dvc pull" -ForegroundColor Yellow
-& ..\\.venv\\Scripts\\dvc.exe config --local cache.dir .dvc/cache/screenshot-proof
+Write-Host "`n> dvc config --local cache.dir <fresh-empty-cache>; dvc pull" -ForegroundColor Yellow
+& ..\\.venv\\Scripts\\dvc.exe config --local cache.dir ('.dvc/cache/screenshot-proof-'+[guid]::NewGuid().ToString())
 & ..\\.venv\\Scripts\\dvc.exe pull
-$after=(Get-FileHash -LiteralPath samples.csv -Algorithm SHA256).Hash
+$after=(& ..\\.venv\\Scripts\\python.exe -c "import hashlib;print(hashlib.sha256(open('samples.csv','rb').read()).hexdigest())")
 Write-Host ('SHA-256 matches after remote recovery: '+($before -eq $after))
 Get-Content -LiteralPath samples.csv
 ''',
@@ -41,8 +41,8 @@ Write-Host "`n> docker compose exec web id" -ForegroundColor Yellow
 docker compose exec -T web id
 Write-Host "`n> docker compose exec db sh -c 'id; pg_isready'" -ForegroundColor Yellow
 docker compose exec -T db sh -c 'id; pg_isready'
-Write-Host "`n> docker compose port db 5432 (no published host port)" -ForegroundColor Yellow
-docker compose port db 5432
+Write-Host "`n> docker inspect -f '{{json .NetworkSettings.Ports}}' l236050_a2_ops-db-1" -ForegroundColor Yellow
+docker inspect -f '{{json .NetworkSettings.Ports}}' l236050_a2_ops-db-1
 Write-Host "`n> GET http://127.0.0.1:5000/health" -ForegroundColor Yellow
 (Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5000/health).Content
 ''',

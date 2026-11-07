@@ -9,11 +9,33 @@ const path = require('path');
   const url=process.argv[2];
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
   await page.waitForTimeout(12000);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  const close=page.getByRole('button',{name:/^(close|dismiss|not now)$/i});
+  if(await close.count()) await close.first().click();
   if(process.argv[4]==='training') {
     const got = page.getByRole('button',{name:'Got it',exact:true});
     if(await got.count()) await got.click();
     await page.getByText('Model training',{exact:true}).first().click();
     await page.waitForTimeout(6000);
+  }
+  if(process.argv[4]==='metrics') {
+    await page.getByText('Model metrics',{exact:true}).click();
+    await page.waitForTimeout(9000);
+  }
+  if(process.argv[4]==='curves') {
+    const run=page.url().match(/\/runs\/([^/?#]+)/)[1];
+    const origin=page.url().split('#')[0];
+    const params=new URLSearchParams({runs:JSON.stringify([run]),experiments:'["1"]',metric:'"val_loss"',
+      plot_metric_keys:JSON.stringify(['loss','val_loss','accuracy','val_accuracy']),plot_layout:'{}',
+      x_axis:'step',y_axis_scale:'linear',line_smoothness:'1',show_point:'true',deselected_curves:'[]'});
+    await page.goto(origin+'#/metric?'+params.toString());await page.waitForTimeout(10000);
+  }
+  if(process.argv[4]==='artifacts') {
+    for(const name of ['evidence','model','splits']){
+      await page.getByText(name,{exact:true}).first().click();
+      await page.waitForTimeout(500);
+    }
   }
   if(process.argv[4]==='compare') {
     const confirm = page.getByRole('button',{name:'Confirm',exact:true});

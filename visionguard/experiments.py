@@ -244,21 +244,22 @@ def project(epochs=6):
         keras.backend.clear_session()
         keras.utils.set_random_seed(SEED)
         mlflow.tensorflow.autolog(disable=True)
-        if logging == "autolog":
-            mlflow.tensorflow.autolog(log_models=False, log_datasets=False, checkpoint=False, silent=True)
         with mlflow.start_run(run_name=name) as run:
             mlflow.log_params({**config, "image_size": 128, "batch_size": 16, "planned_epochs": epochs,
                                "warm_start": "Task2_best_frozen_checkpoint", "logging_method": logging})
             mlflow.set_tags({"git_commit": git_sha(), "dvc_data_version": data_version, "seed": str(SEED),
                              "project": PROJECT, "positive_class": "AI-generated", "comparison": "one_factor_from_reference"})
             model = build(config)
+            # Deserialization can replace fit; patch the final loaded model's class.
+            if logging == "autolog":
+                mlflow.tensorflow.autolog(log_models=False, log_datasets=False, checkpoint=False, silent=False)
             callbacks = [keras.callbacks.EarlyStopping(monitor="val_loss", patience=3, restore_best_weights=True),
                          keras.callbacks.ModelCheckpoint(str(folder/"best.keras"), monitor="val_loss", save_best_only=True),
                          keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=2, factor=.5, min_lr=1e-7)]
             if logging == "manual":
                 callbacks.append(ManualMetrics())
             history = model.fit(dataset("train", config["augmentation"]), validation_data=dataset("validation"),
-                                epochs=epochs, class_weight=weights, callbacks=callbacks, verbose=2)
+                                epochs=epochs, batch_size=16, class_weight=weights, callbacks=callbacks, verbose=2)
             model = keras.models.load_model(folder / "best.keras")
             best_epoch = curve(history.history, folder / "curves.png", name)
             pd.DataFrame(history.history).to_csv(folder/"history.csv", index=False)
@@ -331,6 +332,7 @@ def registry():
         version = client.create_model_version(PROJECT, f"runs:/{row.run_id}/model", run_id=row.run_id)
         client.set_model_version_tag(PROJECT, version.version, "validation_cost", str(row.validation_cost))
         client.set_model_version_tag(PROJECT, version.version, "seed", str(SEED))
+        client.set_model_version_tag(PROJECT, version.version, "threshold", str(row.threshold))
         versions.append({"version": version.version, "run_id": row.run_id, "name": row['name']})
     champion = versions[-1]
     client.set_registered_model_alias(PROJECT, "champion", champion["version"])
@@ -349,14 +351,45 @@ def registry():
     print(json.dumps(manifest, indent=2))
 
 
+def repair_autolog():
+    """Replay deterministic training solely to recover omitted automatic epoch logs."""
+    set_tracking(True)
+    client=MlflowClient()
+    labels=pd.read_csv(ROOT/'splits/train.csv').label.to_numpy()
+    weights={int(label):len(labels)/(2*int((labels==label).sum())) for label in np.unique(labels)}
+    for folder in sorted(OUTPUT.glob('*_autolog')):
+        result=json.loads((folder/'result.json').read_text())
+        if 'val_loss' in client.get_run(result['run_id']).data.metrics:
+            continue
+        keras.backend.clear_session();keras.utils.set_random_seed(SEED)
+        mlflow.tensorflow.autolog(disable=True)
+        model=build(result)
+        mlflow.tensorflow.autolog(log_models=False,log_datasets=False,checkpoint=False,silent=False)
+        with mlflow.start_run(run_id=result['run_id']):
+            mlflow.set_tag('autolog_replay_reason','Patch enabled after Keras model deserialization; test predictions were not repeated')
+            callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss',patience=3,restore_best_weights=True),
+                       keras.callbacks.ReduceLROnPlateau(monitor='val_loss',patience=2,factor=.5,min_lr=1e-7)]
+            history=model.fit(dataset('train',result['augmentation']),validation_data=dataset('validation'),
+                              epochs=6,batch_size=16,class_weight=weights,callbacks=callbacks,verbose=2)
+            original=pd.read_csv(folder/'history.csv')
+            same=len(original)==len(history.history['loss']) and all(
+                np.allclose(original[key],history.history[key],rtol=1e-5,atol=1e-6)
+                for key in ['loss','accuracy','val_loss','val_accuracy'])
+            mlflow.set_tag('autolog_replay_matches_saved_history',str(same))
+            print('AUTOLOG RECOVERED',result['name'],'history matches:',same,flush=True)
+        mlflow.tensorflow.autolog(disable=True)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["local-toy", "remote-toy", "project", "registry"])
+    parser.add_argument("mode", choices=["local-toy", "remote-toy", "project", "registry", "repair-autolog"])
     parser.add_argument("--epochs", type=int, default=6)
     args = parser.parse_args()
     if args.mode.endswith("toy"):
         toy(args.mode == "remote-toy")
     elif args.mode == "project":
         project(args.epochs)
+    elif args.mode == 'repair-autolog':
+        repair_autolog()
     else:
         registry()

@@ -24,7 +24,9 @@ $env:PYTHONIOENCODING = 'utf-8'
 try {{
   $ui=$Host.UI.RawUI
   $ui.BufferSize=New-Object System.Management.Automation.Host.Size(140,2000)
-  $ui.WindowSize=New-Object System.Management.Automation.Host.Size(140,44)
+  $lines=44
+  if ('{args.name}' -eq 'cnn-summary') {{ $lines=[Math]::Min(64,$ui.MaxPhysicalWindowSize.Height) }}
+  $ui.WindowSize=New-Object System.Management.Automation.Host.Size(140,$lines)
 }} catch {{}}
 Write-Host ('l236050_A2_Ops | mamoon-17 | ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -ForegroundColor Cyan
 Write-Host (Get-Location)

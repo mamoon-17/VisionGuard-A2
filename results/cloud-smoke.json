@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-11-07T19:39:49.684073+00:00",
+  "network": "GitHub-hosted Ubuntu runner",
+  "url": "https://l236050-a2-ops.vercel.app/api/predict",
+  "health_status": 200,
+  "prediction_status": 200,
+  "response": {
+    "caveat": "Experimental screening result. Images can be misclassified; this is not proof of authenticity.",
+    "confidence": 0.4338218569755554,
+    "filename": "network-smoke.png",
+    "label": "Real",
+    "model_version": "l236050_A2_Ops:2",
+    "probability_ai": 0.5661781430244446,
+    "threshold": 0.7480505704879762
+  },
+  "purpose": "Network reachability, not a labelled accuracy evaluation"
+}
