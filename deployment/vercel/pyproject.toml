@@ -1,0 +1,5 @@
+[project]
+name = "l236050-a2-ops"
+version = "1.0.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["Flask==3.1.3", "Pillow==13.0.0", "numpy==2.5.4", "tensorflow-cpu==2.21.0"]

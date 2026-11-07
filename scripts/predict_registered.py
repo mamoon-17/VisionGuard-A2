@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+os.environ.setdefault('MLFLOW_ENABLE_ARTIFACTS_PROGRESS_BAR', 'false')
 import mlflow
 import mlflow.tensorflow
 
@@ -21,7 +22,7 @@ def main():
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
     model = mlflow.tensorflow.load_model(uri)
     version = mlflow.MlflowClient().get_model_version_by_alias(name, "champion")
-    threshold = float(json.loads(Path("model/manifest.json").read_text())["threshold"])
+    threshold = float(version.tags['threshold'])
     probability = float(model(preprocess(args.image.read_bytes()), training=False).numpy().ravel()[0])
     print(json.dumps({"uri": uri, "version": version.version, "image": args.image.name,
                       "label": "AI-generated" if probability >= threshold else "Real",

@@ -19,3 +19,6 @@ __pycache__/
 ~$*.docx
 .pytest_cache/
 .ruff_cache/
+/deployment/vercel/.vercel/
+/deployment/vercel/model/*.keras
+/deployment/vercel/inference.py

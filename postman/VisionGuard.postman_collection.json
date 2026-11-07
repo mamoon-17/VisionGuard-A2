@@ -1,0 +1,10 @@
+{
+  "info": {"name": "l236050_A2_Ops API", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+  "item": [
+    {"name": "Public health", "request": {"method": "GET", "url": "{{base_url}}/health"},
+     "event": [{"listen": "test", "script": {"exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.test('Correct project', () => pm.expect(pm.response.json().project).to.eql('l236050_A2_Ops'));"], "type": "text/javascript"}}]},
+    {"name": "Champion inference", "request": {"method": "POST", "url": "{{base_url}}/api/predict", "header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+      "body": {"mode": "formdata", "formdata": [{"key": "image", "type": "file", "src": "evidence/cloud-samples/ai.jpg"}]}},
+     "event": [{"listen": "test", "script": {"exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.test('Registered champion', () => pm.expect(pm.response.json().model_version).to.eql('l236050_A2_Ops:2'));", "pm.test('Probability in range', () => {const p=pm.response.json().probability_ai;pm.expect(p).to.be.within(0,1);});", "pm.test('Honest caveat present', () => pm.expect(pm.response.json().caveat).to.include('not proof'));"], "type": "text/javascript"}}]}
+  ]
+}
