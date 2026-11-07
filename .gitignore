@@ -4,3 +4,18 @@
 __pycache__/
 *.pyc
 /dvc_toy/
+/submission a2/
+.env
+.env.*
+!.env.example
+/evidence/
+/instance/
+/model/*.keras
+/mlruns/
+/mlflow.db
+/mlflow.db-*
+/mlflow_data/
+/.vercel/
+~$*.docx
+.pytest_cache/
+.ruff_cache/
