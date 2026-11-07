@@ -1,0 +1,6 @@
+{
+  "commit": "c0780c5f74c966a4aeae1313489ba43bc5e4f79d",
+  "ci_run": "https://github.com/mamoon-17/VisionGuard-A2/actions/runs/42408196996",
+  "external_network_run": "https://github.com/mamoon-17/VisionGuard-A2/actions/runs/42407281894",
+  "api": "https://l236050-a2-ops.vercel.app/api/predict"
+}
