@@ -1,0 +1,36 @@
+name: VisionGuard CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-test.txt
+      - run: ruff check visionguard scripts tests app.py
+      - run: python -m pytest -q
+      - run: docker build -t l236050_a2_ops:ci .
+  mirror-dagshub:
+    needs: check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Mirror validated main to DagsHub
+        env:
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          git config --global credential.helper '!f() { echo username=mamoon-17; echo "password=$DAGSHUB_TOKEN"; }; f'
+          git remote add dagshub https://dagshub.com/mamoon-17/VisionGuard-A2.git
+          git push dagshub HEAD:main

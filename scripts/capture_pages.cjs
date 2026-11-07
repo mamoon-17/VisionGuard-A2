@@ -10,8 +10,22 @@ const path = require('path');
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
   await page.waitForTimeout(12000);
   if(process.argv[4]==='training') {
+    const got = page.getByRole('button',{name:'Got it',exact:true});
+    if(await got.count()) await got.click();
     await page.getByText('Model training',{exact:true}).first().click();
     await page.waitForTimeout(6000);
+  }
+  if(process.argv[4]==='compare') {
+    const confirm = page.getByRole('button',{name:'Confirm',exact:true});
+    if(await confirm.count()) await confirm.click();
+    const got=page.getByRole('button',{name:'Got it',exact:true});if(await got.count()) await got.click();
+    console.log('CHECKBOXES',await page.getByRole('checkbox').count());
+    console.log('BOXDETAILS',await page.getByRole('checkbox').evaluateAll(bs=>bs.map(b=>({html:b.outerHTML,rect:b.getBoundingClientRect().toJSON()}))));
+    const boxes=page.getByRole('checkbox');
+    await boxes.nth(1).check();await boxes.nth(2).check();
+    console.log('BUTTONS',await page.getByRole('button').allTextContents());
+    const compare=page.getByRole('button',{name:/Compare/}).first();
+    await compare.click();await page.waitForTimeout(9000);
   }
   if(process.argv[3]) await page.screenshot({path:process.argv[3],fullPage:true});
   console.log('URL:',page.url());

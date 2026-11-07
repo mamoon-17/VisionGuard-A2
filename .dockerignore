@@ -1,0 +1,23 @@
+.git
+.venv
+.env
+.env.*
+!.env.example
+cashbowman
+artifacts
+dvc_toy
+submission a2
+evidence
+instance
+mlflow_data
+model
+*.docx
+*.pdf
+*.ipynb
+__pycache__
+.pytest_cache
+.ruff_cache
+tests
+scripts
+.dvc
+splits

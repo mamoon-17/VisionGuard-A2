@@ -1,0 +1,10 @@
+FROM python:3.12
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 TF_CPP_MIN_LOG_LEVEL=2
+WORKDIR /app
+COPY requirements-web.txt .
+RUN pip install -r requirements-web.txt
+COPY visionguard ./visionguard
+COPY templates ./templates
+COPY static ./static
+COPY app.py .
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]

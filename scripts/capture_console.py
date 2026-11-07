@@ -20,7 +20,7 @@ def capture(script, output, title):
         creationflags=subprocess.CREATE_NEW_CONSOLE,
     )
     handle = None
-    for _ in range(60):
+    for _ in range(240):
         found = []
         callback_type = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
 
