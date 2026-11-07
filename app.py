@@ -1,0 +1,9 @@
+"""WSGI entry point; settings come from environment variables."""
+from visionguard.web import create_app
+
+app = create_app()
+
+if __name__ == "__main__":
+    import os
+
+    app.run(host="127.0.0.1", port=int(os.getenv("PORT", "5000")), debug=False)
