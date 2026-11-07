@@ -1,0 +1,13 @@
+{
+  "registered_model": "l236050_A2_Ops",
+  "alias": "champion",
+  "version": "2",
+  "run_id": "47cc78ea0bb847b3a61ee4c2d687283f",
+  "threshold": 0.7480505704879762,
+  "image_size": [
+    128,
+    128
+  ],
+  "positive_class": "AI-generated",
+  "preprocessing": "EXIF transpose, RGB, resize_with_pad; normalization inside model"
+}

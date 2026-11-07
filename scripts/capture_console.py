@@ -10,6 +10,8 @@ from PIL import ImageGrab
 
 def capture(script, output, title):
     """Launch real PowerShell commands; capture their actual visible console pixels."""
+    for suffix in (".ready", ".captured"):
+        script.with_suffix(suffix).unlink(missing_ok=True)
     user32 = ctypes.windll.user32
     process = subprocess.Popen(
         [r"C:\Windows\System32\conhost.exe",

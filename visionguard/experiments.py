@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -14,6 +15,10 @@ os.environ.setdefault("KERAS_HOME", str(ROOT / "artifacts/keras_cache"))
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 os.environ.setdefault("MLFLOW_ENABLE_ARTIFACTS_PROGRESS_BAR", "false")
 os.environ.setdefault("MPLBACKEND", "Agg")
+os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
+for stream in [sys.stdout, sys.stderr]:
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="replace")
 
 import matplotlib.pyplot as plt
 import mlflow
